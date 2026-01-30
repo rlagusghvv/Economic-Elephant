@@ -427,6 +427,7 @@ class _CardPager extends StatefulWidget {
 class _CardPagerState extends State<_CardPager> {
   bool _stomp = false;
   bool _tilt = false;
+  bool _isScrolling = false;
 
   void _onPageChanged(int i) {
     widget.onPageChanged(i);
@@ -455,35 +456,66 @@ class _CardPagerState extends State<_CardPager> {
           height: cardHeight,
           child: Stack(
             children: [
-              PageView.builder(
-                controller: widget.controller,
-                itemCount: widget.count,
-                onPageChanged: _onPageChanged,
-                itemBuilder: (context, i) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: AnimatedRotation(
-                    turns: _tilt ? -0.004 : 0.0,
-                    duration: const Duration(milliseconds: 160),
-                    child: widget.itemBuilder(i),
-                  ),
+              NotificationListener<ScrollNotification>(
+                onNotification: (n) {
+                  if (n is ScrollStartNotification) {
+                    setState(() => _isScrolling = true);
+                  } else if (n is ScrollEndNotification ||
+                      n is UserScrollNotification && n.direction == ScrollDirection.idle) {
+                    setState(() => _isScrolling = false);
+                  }
+                  return false;
+                },
+                child: AnimatedBuilder(
+                  animation: widget.controller,
+                  builder: (context, child) {
+                    final page =
+                        widget.controller.hasClients && widget.controller.page != null
+                            ? widget.controller.page!
+                            : widget.controller.initialPage.toDouble();
+
+                    return PageView.builder(
+                      controller: widget.controller,
+                      itemCount: widget.count,
+                      onPageChanged: _onPageChanged,
+                      itemBuilder: (context, i) {
+                        final delta = (page - i).abs();
+                        final squashX = (1 - (delta * 0.08)).clamp(0.9, 1.0);
+                        final squashY = (1 - (delta * 0.18)).clamp(0.75, 1.0);
+                        final fade = (1 - (delta * 1.1)).clamp(0.0, 1.0);
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Opacity(
+                            opacity: fade,
+                            child: Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.identity()
+                                ..scale(squashX, squashY),
+                              child: AnimatedRotation(
+                                turns: _tilt ? -0.006 : 0.0,
+                                duration: const Duration(milliseconds: 160),
+                                child: widget.itemBuilder(i),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
-              Positioned(
-                right: 14,
-                bottom: 14,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 220),
-                  scale: _stomp ? 1.15 : 0.6,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 220),
-                    opacity: _stomp ? 1.0 : 0.0,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE7F0FF),
-                        borderRadius: BorderRadius.circular(16),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Center(
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 180),
+                      scale: _isScrolling ? 1.6 : (_stomp ? 1.3 : 0.8),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 180),
+                        opacity: _isScrolling ? 0.85 : (_stomp ? 0.9 : 0.0),
+                        child: const ElephantIcon(size: 72),
                       ),
-                      child: const ElephantIcon(size: 22),
                     ),
                   ),
                 ),
