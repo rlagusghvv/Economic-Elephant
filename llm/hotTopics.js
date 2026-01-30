@@ -55,6 +55,12 @@ JSON 스키마:
 - KR/WORLD는 지역을 혼동하지 말 것
 ${domainLine}
 링크는 반드시 실제로 존재하는 URL이어야 하며, 임의 생성 금지.
+JSON 규칙:
+- 반드시 유효한 JSON
+- 모든 문자열은 "큰따옴표" 사용
+- 주석/설명/추가 텍스트 금지
+- trailing comma 금지
+- summary 각 요소는 줄바꿈 없는 한 문장
 ${extra}
 `.trim();
 }
@@ -67,6 +73,24 @@ function extractJson(text) {
   const last = s.lastIndexOf("}");
   if (first >= 0 && last > first) return s.slice(first, last + 1);
   return "";
+}
+
+function tryParseJson(text) {
+  const jsonStr = extractJson(text);
+  if (!jsonStr) return null;
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    const fixed = jsonStr
+      .replace(/,\s*([}\]])/g, "$1")
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+    try {
+      return JSON.parse(fixed);
+    } catch {
+      return null;
+    }
+  }
 }
 
 function isRateLimitError(err) {
@@ -83,12 +107,13 @@ export async function generateHotTopics({
   note = "",
   allowedDomains = [],
 } = {}) {
+  let localNote = note;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const prompt = buildPrompt({
       date,
       limitKR,
       limitWorld,
-      note,
+      note: localNote,
       allowedDomains,
     });
 
@@ -107,10 +132,8 @@ export async function generateHotTopics({
         debug,
       });
 
-      const jsonStr = extractJson(text);
-      if (!jsonStr) throw new Error("no json in response");
-
-      const parsed = JSON.parse(jsonStr);
+      const parsed = tryParseJson(text);
+      if (!parsed) throw new Error("json parse failed");
       return parsed;
     } catch (err) {
       const waitMs = 1200 * Math.pow(2, attempt - 1);
@@ -120,6 +143,11 @@ export async function generateHotTopics({
         if (debug) console.log("[hotTopics] rate limit -> wait", waitMs);
         await sleep(waitMs);
         continue;
+      }
+
+      if (String(err?.message || "").includes("json parse failed")) {
+        localNote =
+          "JSON 파싱 실패. 반드시 JSON만 출력하고, trailing comma/주석/설명 금지.";
       }
 
       if (attempt < maxAttempts) {

@@ -11,7 +11,7 @@ const log = (...a) => DEBUG && console.log("[hot-topics]", ...a);
 
 const LIMIT_KR = Number(process.env.LIMIT_KR || 5);
 const LIMIT_WORLD = Number(process.env.LIMIT_WORLD || 5);
-const MAX_ATTEMPTS = Number(process.env.MAX_ATTEMPTS || 3);
+const MAX_ATTEMPTS = Number(process.env.MAX_ATTEMPTS || 5);
 const ENFORCE_DOMAIN_WHITELIST =
   process.env.ENFORCE_DOMAIN_WHITELIST !== "0";
 
@@ -158,6 +158,7 @@ async function main() {
       limitWorld: LIMIT_WORLD,
       debug: DEBUG,
       note,
+      maxAttempts: MAX_ATTEMPTS,
       allowedDomains: DOMAIN_WHITELIST,
     });
 
@@ -170,6 +171,8 @@ async function main() {
     if (attempt === MAX_ATTEMPTS)
       throw new Error(`LLM output invalid: ${lastIssues.join("; ")}`);
   }
+
+  data.date = date;
 
   const outDir = ensureOutDir();
   const outPath = path.join(outDir, `daily_topics_${date}.json`);
