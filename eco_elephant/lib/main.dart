@@ -429,8 +429,14 @@ class _CardPagerState extends State<_CardPager> {
   bool _stomp = false;
   bool _tilt = false;
   bool _isScrolling = false;
+  int _lastIndex = 0;
+  final Set<int> _dismissed = {};
 
   void _onPageChanged(int i) {
+    if (i > _lastIndex) {
+      _dismissed.add(_lastIndex);
+    }
+    _lastIndex = i;
     widget.onPageChanged(i);
     setState(() => _stomp = true);
     setState(() => _tilt = true);
@@ -479,6 +485,7 @@ class _CardPagerState extends State<_CardPager> {
                       controller: widget.controller,
                       itemCount: widget.count,
                       onPageChanged: _onPageChanged,
+                      physics: const PageScrollPhysics(),
                       itemBuilder: (context, i) {
                         final delta = (page - i).abs();
                         final squashX = (1 - (delta * 0.18)).clamp(0.7, 1.0);
@@ -486,18 +493,22 @@ class _CardPagerState extends State<_CardPager> {
                         final fade = (1 - (delta * 1.6)).clamp(0.0, 1.0);
                         final shrink = (1 - (delta * 0.25)).clamp(0.6, 1.0);
 
+                        final isGone = _dismissed.contains(i);
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Opacity(
-                            opacity: fade,
-                            child: Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.identity()
-                                ..scale(squashX * shrink, squashY),
-                              child: AnimatedRotation(
-                                turns: _tilt ? -0.012 : 0.0,
-                                duration: const Duration(milliseconds: 140),
-                                child: widget.itemBuilder(i),
+                          child: IgnorePointer(
+                            ignoring: isGone,
+                            child: Opacity(
+                              opacity: isGone ? 0.0 : fade,
+                              child: Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.identity()
+                                  ..scale(squashX * shrink, squashY),
+                                child: AnimatedRotation(
+                                  turns: _tilt ? -0.012 : 0.0,
+                                  duration: const Duration(milliseconds: 140),
+                                  child: widget.itemBuilder(i),
+                                ),
                               ),
                             ),
                           ),
@@ -512,11 +523,11 @@ class _CardPagerState extends State<_CardPager> {
                   child: Center(
                     child: AnimatedScale(
                       duration: const Duration(milliseconds: 180),
-                      scale: _isScrolling ? 2.2 : (_stomp ? 1.6 : 0.9),
+                      scale: _isScrolling ? 2.6 : (_stomp ? 1.9 : 1.0),
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 180),
                         opacity: _isScrolling ? 0.9 : (_stomp ? 0.95 : 0.0),
-                        child: const ElephantIcon(size: 110),
+                        child: const ElephantIcon(size: 140),
                       ),
                     ),
                   ),
