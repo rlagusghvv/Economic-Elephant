@@ -54,11 +54,22 @@ class HotTopicsHome extends StatefulWidget {
 
 class _HotTopicsHomeState extends State<HotTopicsHome> {
   late Future<HotTopicsResponse> _future;
+  final _krController = PageController(viewportFraction: 0.92);
+  final _worldController = PageController(viewportFraction: 0.92);
+  int _krIndex = 0;
+  int _worldIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _future = fetchTodayTopics();
+  }
+
+  @override
+  void dispose() {
+    _krController.dispose();
+    _worldController.dispose();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -100,9 +111,13 @@ class _HotTopicsHomeState extends State<HotTopicsHome> {
                     count: data.kr.length,
                   ),
                   const SizedBox(height: 8),
-                  ...List.generate(
-                    data.kr.length,
-                    (i) => TopicBlock(index: i + 1, topic: data.kr[i]),
+                  _CardPager(
+                    controller: _krController,
+                    count: data.kr.length,
+                    index: _krIndex,
+                    onPageChanged: (i) => setState(() => _krIndex = i),
+                    itemBuilder: (i) =>
+                        TopicBlock(index: i + 1, topic: data.kr[i]),
                   ),
                   const SizedBox(height: 16),
                   _SectionHeader(
@@ -110,9 +125,13 @@ class _HotTopicsHomeState extends State<HotTopicsHome> {
                     count: data.world.length,
                   ),
                   const SizedBox(height: 8),
-                  ...List.generate(
-                    data.world.length,
-                    (i) => TopicBlock(index: i + 1, topic: data.world[i]),
+                  _CardPager(
+                    controller: _worldController,
+                    count: data.world.length,
+                    index: _worldIndex,
+                    onPageChanged: (i) => setState(() => _worldIndex = i),
+                    itemBuilder: (i) =>
+                        TopicBlock(index: i + 1, topic: data.world[i]),
                   ),
                 ],
               ),
@@ -388,6 +407,75 @@ class TopicBlock extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _CardPager extends StatelessWidget {
+  const _CardPager({
+    required this.controller,
+    required this.count,
+    required this.index,
+    required this.onPageChanged,
+    required this.itemBuilder,
+  });
+
+  final PageController controller;
+  final int count;
+  final int index;
+  final ValueChanged<int> onPageChanged;
+  final Widget Function(int) itemBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    if (count == 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 340,
+          child: PageView.builder(
+            controller: controller,
+            itemCount: count,
+            onPageChanged: onPageChanged,
+            itemBuilder: (context, i) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: itemBuilder(i),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _DotsIndicator(count: count, index: index),
+      ],
+    );
+  }
+}
+
+class _DotsIndicator extends StatelessWidget {
+  const _DotsIndicator({required this.count, required this.index});
+
+  final int count;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        count,
+        (i) => AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: i == index ? 18 : 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: i == index ? const Color(0xFF3182F6) : const Color(0xFFDDE2E8),
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
       ),
     );
   }
