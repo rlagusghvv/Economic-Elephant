@@ -198,7 +198,7 @@ class _HeroCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             alignment: Alignment.center,
-            child: const Text('🐘', style: TextStyle(fontSize: 24)),
+            child: const ElephantIcon(size: 28),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -490,7 +490,7 @@ class _CardPagerState extends State<_CardPager> {
                         color: const Color(0xFFE7F0FF),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Text('🐘', style: TextStyle(fontSize: 18)),
+                      child: const ElephantIcon(size: 20),
                     ),
                   ),
                 ),
@@ -716,4 +716,68 @@ class _PillButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class ElephantIcon extends StatelessWidget {
+  const ElephantIcon({super.key, this.size = 24});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size.square(size),
+      painter: _ElephantPainter(),
+    );
+  }
+}
+
+class _ElephantPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bodyPaint = Paint()..color = const Color(0xFF3E6AE1);
+    final earPaint = Paint()..color = const Color(0xFF5C8DFF);
+    final eyePaint = Paint()..color = Colors.white;
+
+    final w = size.width;
+    final h = size.height;
+
+    final body = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.2, h * 0.35, w * 0.6, h * 0.38),
+      Radius.circular(w * 0.18),
+    );
+    canvas.drawRRect(body, bodyPaint);
+
+    final head = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.5, h * 0.28, w * 0.32, h * 0.3),
+      Radius.circular(w * 0.18),
+    );
+    canvas.drawRRect(head, bodyPaint);
+
+    final ear = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.38, h * 0.28, w * 0.22, h * 0.22),
+      Radius.circular(w * 0.12),
+    );
+    canvas.drawRRect(ear, earPaint);
+
+    final trunk = Path()
+      ..moveTo(w * 0.76, h * 0.46)
+      ..quadraticBezierTo(w * 0.92, h * 0.5, w * 0.88, h * 0.68)
+      ..quadraticBezierTo(w * 0.86, h * 0.8, w * 0.74, h * 0.78);
+    final trunkPaint = Paint()
+      ..color = bodyPaint.color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w * 0.08
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(trunk, trunkPaint);
+
+    canvas.drawCircle(
+      Offset(w * 0.62, h * 0.42),
+      w * 0.03,
+      eyePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
