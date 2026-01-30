@@ -449,7 +449,7 @@ class _CardPagerState extends State<_CardPager> {
     }
 
     final h = MediaQuery.of(context).size.height;
-    final cardHeight = (h * 0.48).clamp(300.0, 420.0);
+    final cardHeight = (h * 0.50).clamp(320.0, 460.0);
 
     return Column(
       children: [
@@ -481,9 +481,10 @@ class _CardPagerState extends State<_CardPager> {
                       onPageChanged: _onPageChanged,
                       itemBuilder: (context, i) {
                         final delta = (page - i).abs();
-                        final squashX = (1 - (delta * 0.08)).clamp(0.9, 1.0);
-                        final squashY = (1 - (delta * 0.18)).clamp(0.75, 1.0);
-                        final fade = (1 - (delta * 1.1)).clamp(0.0, 1.0);
+                        final squashX = (1 - (delta * 0.18)).clamp(0.7, 1.0);
+                        final squashY = (1 - (delta * 0.38)).clamp(0.45, 1.0);
+                        final fade = (1 - (delta * 1.6)).clamp(0.0, 1.0);
+                        final shrink = (1 - (delta * 0.25)).clamp(0.6, 1.0);
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -492,10 +493,10 @@ class _CardPagerState extends State<_CardPager> {
                             child: Transform(
                               alignment: Alignment.center,
                               transform: Matrix4.identity()
-                                ..scale(squashX, squashY),
+                                ..scale(squashX * shrink, squashY),
                               child: AnimatedRotation(
-                                turns: _tilt ? -0.006 : 0.0,
-                                duration: const Duration(milliseconds: 160),
+                                turns: _tilt ? -0.012 : 0.0,
+                                duration: const Duration(milliseconds: 140),
                                 child: widget.itemBuilder(i),
                               ),
                             ),
@@ -511,11 +512,11 @@ class _CardPagerState extends State<_CardPager> {
                   child: Center(
                     child: AnimatedScale(
                       duration: const Duration(milliseconds: 180),
-                      scale: _isScrolling ? 1.6 : (_stomp ? 1.3 : 0.8),
+                      scale: _isScrolling ? 2.2 : (_stomp ? 1.6 : 0.9),
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 180),
-                        opacity: _isScrolling ? 0.85 : (_stomp ? 0.9 : 0.0),
-                        child: const ElephantIcon(size: 72),
+                        opacity: _isScrolling ? 0.9 : (_stomp ? 0.95 : 0.0),
+                        child: const ElephantIcon(size: 110),
                       ),
                     ),
                   ),
