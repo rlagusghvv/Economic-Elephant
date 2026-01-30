@@ -305,10 +305,10 @@ class HotTopic {
 
   factory HotTopic.fromJson(Map<String, dynamic> json) {
     return HotTopic(
-      id: String(json['id'] ?? ''),
-      title: String(json['title'] ?? ''),
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
       summary: (json['summary'] as List? ?? []).map((e) => '$e').toList(),
-      whyItMatters: String(json['why_it_matters'] ?? ''),
+      whyItMatters: (json['why_it_matters'] ?? '').toString(),
       sources: (json['sources'] as List? ?? []).map((e) => '$e').toList(),
       tags: (json['tags'] as List? ?? []).map((e) => '$e').toList(),
     );
@@ -324,7 +324,7 @@ class HotTopicsResponse {
 
   factory HotTopicsResponse.fromJson(Map<String, dynamic> json) {
     return HotTopicsResponse(
-      date: String(json['date'] ?? todayKstString()),
+      date: (json['date'] ?? todayKstString()).toString(),
       kr: (json['kr'] as List? ?? [])
           .map((e) => HotTopic.fromJson(e))
           .toList(),
