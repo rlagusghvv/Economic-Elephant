@@ -288,7 +288,6 @@ class TopicBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -300,119 +299,129 @@ class TopicBlock extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(18),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 30,
-                height: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE7F0FF),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  index.toString(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3182F6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE7F0FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      index.toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF3182F6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      topic.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...topic.summary.map(
+                (s) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    '• $s',
+                    style: const TextStyle(
+                      height: 1.45,
+                      color: Color(0xFF333D4B),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  topic.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    height: 1.35,
+              if (topic.tags.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: -6,
+                  children: topic.tags
+                      .map(
+                        (t) => Chip(
+                          label: Text(t),
+                          visualDensity: VisualDensity.compact,
+                          backgroundColor: const Color(0xFFF2F4F7),
+                          side: BorderSide.none,
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+              if (topic.sources.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  '출처',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF6B7684),
                   ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                ...topic.sources.map(
+                  (u) => InkWell(
+                    onTap: () => openUrl(u),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.link,
+                            size: 16,
+                            color: Color(0xFF3182F6),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              displayHost(u),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF3182F6),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            size: 18,
+                            color: Color(0xFFB0B8C1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          ...topic.summary.map(
-            (s) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '• $s',
-                style: const TextStyle(
-                  height: 1.45,
-                  color: Color(0xFF333D4B),
-                ),
-              ),
-            ),
-          ),
-          if (topic.tags.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: -6,
-              children: topic.tags
-                  .map(
-                    (t) => Chip(
-                      label: Text(t),
-                      visualDensity: VisualDensity.compact,
-                      backgroundColor: const Color(0xFFF2F4F7),
-                      side: BorderSide.none,
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
-          if (topic.sources.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            const Text(
-              '출처',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF6B7684),
-              ),
-            ),
-            const SizedBox(height: 6),
-            ...topic.sources.map(
-              (u) => InkWell(
-                onTap: () => openUrl(u),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.link, size: 16, color: Color(0xFF3182F6)),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          displayHost(u),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF3182F6),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const Icon(
-                        Icons.chevron_right,
-                        size: 18,
-                        color: Color(0xFFB0B8C1),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
 }
 
-class _CardPager extends StatelessWidget {
+class _CardPager extends StatefulWidget {
   const _CardPager({
     required this.controller,
     required this.count,
@@ -428,27 +437,69 @@ class _CardPager extends StatelessWidget {
   final Widget Function(int) itemBuilder;
 
   @override
+  State<_CardPager> createState() => _CardPagerState();
+}
+
+class _CardPagerState extends State<_CardPager> {
+  bool _stomp = false;
+
+  void _onPageChanged(int i) {
+    widget.onPageChanged(i);
+    setState(() => _stomp = true);
+    Future.delayed(const Duration(milliseconds: 220), () {
+      if (mounted) setState(() => _stomp = false);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (count == 0) {
+    if (widget.count == 0) {
       return const SizedBox.shrink();
     }
+
+    final h = MediaQuery.of(context).size.height;
+    final cardHeight = (h * 0.48).clamp(300.0, 420.0);
 
     return Column(
       children: [
         SizedBox(
-          height: 340,
-          child: PageView.builder(
-            controller: controller,
-            itemCount: count,
-            onPageChanged: onPageChanged,
-            itemBuilder: (context, i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: itemBuilder(i),
-            ),
+          height: cardHeight,
+          child: Stack(
+            children: [
+              PageView.builder(
+                controller: widget.controller,
+                itemCount: widget.count,
+                onPageChanged: _onPageChanged,
+                itemBuilder: (context, i) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: widget.itemBuilder(i),
+                ),
+              ),
+              Positioned(
+                right: 14,
+                bottom: 14,
+                child: AnimatedScale(
+                  duration: const Duration(milliseconds: 220),
+                  scale: _stomp ? 1.0 : 0.6,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 220),
+                    opacity: _stomp ? 1.0 : 0.0,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE7F0FF),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text('🐘', style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
-        _DotsIndicator(count: count, index: index),
+        _DotsIndicator(count: widget.count, index: widget.index),
       ],
     );
   }
