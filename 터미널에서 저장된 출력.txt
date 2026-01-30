@@ -1,0 +1,48 @@
+Last login: Tue Jan 27 22:30:08 on ttys013
+kimhyeonho@gimhyeonhoui-MacBookPro ~ % cat ~/.cloudflared/config.yml
+cat: /Users/kimhyeonho/.cloudflared/config.yml: No such file or directory
+kimhyeonho@gimhyeonhoui-MacBookPro ~ % nano ~/.cloudflared/config.yml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  UW PICO 5.09    File: /Users/kimhyeonho/.cloudflared/config.yml     Modified  
+
+tunnel: splui
+credentials-file: /Users/kimhyeonho/.cloudflared/583738c4-e581-4b4d-882e-b406a8$
+
+ingress:
+  - hostname: app.splui.com
+    service: http://localhost:3000
+
+  - service: http_status:404
+
+
+
+
+
+
+
+
+
+
+
+File Name to write : /Users/kimhyeonho/.cloudflared/config.yml                  
+^G Get Help  ^T  To Files                                                     
+^C Cancel    TAB Complete                                                     

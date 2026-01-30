@@ -1,0 +1,24 @@
+.DS_Store
+.env
+
+# caches / temp
+.cache/
+.tmp/
+.run/
+out/
+tmp_shots_kr/
+tmp_shots_world/
+
+# deps
+node_modules/
+
+# logs
+*.log
+log_*.out
+log_*.err
+
+# secrets / tokens
+.kakao_token_cache.json
+friend_tokens.json
+friend_uuids.json
+state_econ.json
