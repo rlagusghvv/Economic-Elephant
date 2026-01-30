@@ -501,7 +501,7 @@ String displayHost(String url) {
   try {
     final host = Uri.parse(url).host;
     return host.isEmpty ? url : host;
-  } catch {
+  } catch (e) {
     return url;
   }
 }
