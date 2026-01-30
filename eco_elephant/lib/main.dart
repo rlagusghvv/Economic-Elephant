@@ -14,22 +14,30 @@ class EcoElephantApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2F6BFF),
-      brightness: Brightness.light,
-    );
+    const primary = Color(0xFF3182F6);
+    const bg = Color(0xFFF7F8FA);
+    const text = Color(0xFF191F28);
 
     return MaterialApp(
       title: '경제코끼리',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: colorScheme,
-        scaffoldBackgroundColor: const Color(0xFFF4F6FB),
-        textTheme: GoogleFonts.notoSansKrTextTheme(),
+        colorScheme: ColorScheme.fromSeed(seedColor: primary),
+        scaffoldBackgroundColor: bg,
+        textTheme: GoogleFonts.notoSansKrTextTheme().apply(
+          bodyColor: text,
+          displayColor: text,
+        ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: text,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+          iconTheme: IconThemeData(color: text),
         ),
       ),
       home: const HotTopicsHome(),
@@ -81,12 +89,12 @@ class _HotTopicsHomeState extends State<HotTopicsHome> {
             return RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                 children: [
                   _TopBar(onRefresh: _refresh),
                   const SizedBox(height: 12),
                   _HeroCard(date: data.date),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
                   _SectionHeader(
                     title: 'KR 핫토픽',
                     count: data.kr.length,
@@ -127,13 +135,13 @@ class _TopBar extends StatelessWidget {
       children: [
         const Text(
           '경제코끼리',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          onPressed: onRefresh,
-          tooltip: '새로고침',
+        _PillButton(
+          label: '새로고침',
+          icon: Icons.refresh,
+          onTap: onRefresh,
         ),
       ],
     );
@@ -149,44 +157,66 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pretty = formatDate(date);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2F6BFF), Color(0xFF6FA8FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        borderRadius: BorderRadius.circular(22),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Row(
         children: [
-          const Text('🐘', style: TextStyle(fontSize: 28)),
-          const SizedBox(width: 12),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE7F0FF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            alignment: Alignment.center,
+            child: const Text('🐘', style: TextStyle(fontSize: 24)),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   '오늘의 경제 핫토픽',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                    color: Color(0xFF6B7684),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   pretty,
                   style: const TextStyle(
-                    color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: 20,
                   ),
                 ),
               ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F3F5),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              '업데이트됨',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF6B7684),
+              ),
             ),
           ),
         ],
@@ -207,20 +237,20 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
         ),
         const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: const Color(0xFFE3ECFF),
+            color: const Color(0xFFE7F0FF),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
             '$count',
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              color: Color(0xFF2F6BFF),
+              color: Color(0xFF3182F6),
             ),
           ),
         ),
@@ -239,15 +269,15 @@ class TopicBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -258,18 +288,18 @@ class TopicBlock extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 28,
-                height: 28,
+                width: 30,
+                height: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF3FF),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFE7F0FF),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   index.toString(),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2F6BFF),
+                    color: Color(0xFF3182F6),
                   ),
                 ),
               ),
@@ -280,24 +310,27 @@ class TopicBlock extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    height: 1.3,
+                    height: 1.35,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           ...topic.summary.map(
             (s) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
                 '• $s',
-                style: const TextStyle(height: 1.35),
+                style: const TextStyle(
+                  height: 1.45,
+                  color: Color(0xFF333D4B),
+                ),
               ),
             ),
           ),
           if (topic.tags.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Wrap(
               spacing: 6,
               runSpacing: -6,
@@ -306,7 +339,7 @@ class TopicBlock extends StatelessWidget {
                     (t) => Chip(
                       label: Text(t),
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: const Color(0xFFF2F4F8),
+                      backgroundColor: const Color(0xFFF2F4F7),
                       side: BorderSide.none,
                     ),
                   )
@@ -314,10 +347,13 @@ class TopicBlock extends StatelessWidget {
             ),
           ],
           if (topic.sources.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             const Text(
               '출처',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF6B7684),
+              ),
             ),
             const SizedBox(height: 6),
             ...topic.sources.map(
@@ -327,18 +363,23 @@ class TopicBlock extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      const Icon(Icons.link, size: 16),
+                      const Icon(Icons.link, size: 16, color: Color(0xFF3182F6)),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          u,
+                          displayHost(u),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFF2F6BFF),
+                            color: Color(0xFF3182F6),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: Color(0xFFB0B8C1),
                       ),
                     ],
                   ),
@@ -368,9 +409,10 @@ class _ErrorView extends StatelessWidget {
           children: [
             Text(message),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('다시 시도'),
+            _PillButton(
+              label: '다시 시도',
+              icon: Icons.refresh,
+              onTap: onRetry,
             ),
           ],
         ),
@@ -455,6 +497,15 @@ String formatDate(String yyyymmdd) {
   return '$y.$m.$d';
 }
 
+String displayHost(String url) {
+  try {
+    final host = Uri.parse(url).host;
+    return host.isEmpty ? url : host;
+  } catch {
+    return url;
+  }
+}
+
 Future<HotTopicsResponse> fetchTodayTopics() async {
   final date = dateOverride.isNotEmpty ? dateOverride : todayKstString();
   final todayUrl =
@@ -485,4 +536,45 @@ Future<void> openUrl(String url) async {
   final uri = Uri.tryParse(url);
   if (uri == null) return;
   await launchUrl(uri, mode: LaunchMode.externalApplication);
+}
+
+class _PillButton extends StatelessWidget {
+  const _PillButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: const Color(0xFFE5E8EB)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF6B7684)),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF333D4B),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
