@@ -351,27 +351,11 @@ class TopicBlock extends StatelessWidget {
                   ),
                 ),
               ),
-              if (topic.tags.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: -6,
-                  children: topic.tags
-                      .map(
-                        (t) => Chip(
-                          label: Text(t),
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: const Color(0xFFF2F4F7),
-                          side: BorderSide.none,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
-              if (topic.sources.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                const Text(
-                  '출처',
+          // tags hidden for now
+          if (topic.sources.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            const Text(
+              '출처',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF6B7684),
@@ -393,9 +377,9 @@ class TopicBlock extends StatelessWidget {
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              displayHost(u),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              u,
+                              maxLines: 2,
+                              overflow: TextOverflow.fade,
                               style: const TextStyle(
                                 color: Color(0xFF3182F6),
                                 fontWeight: FontWeight.w500,
@@ -442,12 +426,17 @@ class _CardPager extends StatefulWidget {
 
 class _CardPagerState extends State<_CardPager> {
   bool _stomp = false;
+  bool _tilt = false;
 
   void _onPageChanged(int i) {
     widget.onPageChanged(i);
     setState(() => _stomp = true);
+    setState(() => _tilt = true);
     Future.delayed(const Duration(milliseconds: 220), () {
       if (mounted) setState(() => _stomp = false);
+    });
+    Future.delayed(const Duration(milliseconds: 160), () {
+      if (mounted) setState(() => _tilt = false);
     });
   }
 
@@ -472,7 +461,11 @@ class _CardPagerState extends State<_CardPager> {
                 onPageChanged: _onPageChanged,
                 itemBuilder: (context, i) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: widget.itemBuilder(i),
+                  child: AnimatedRotation(
+                    turns: _tilt ? -0.004 : 0.0,
+                    duration: const Duration(milliseconds: 160),
+                    child: widget.itemBuilder(i),
+                  ),
                 ),
               ),
               Positioned(
@@ -480,7 +473,7 @@ class _CardPagerState extends State<_CardPager> {
                 bottom: 14,
                 child: AnimatedScale(
                   duration: const Duration(milliseconds: 220),
-                  scale: _stomp ? 1.0 : 0.6,
+                  scale: _stomp ? 1.15 : 0.6,
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 220),
                     opacity: _stomp ? 1.0 : 0.0,
@@ -490,7 +483,7 @@ class _CardPagerState extends State<_CardPager> {
                         color: const Color(0xFFE7F0FF),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const ElephantIcon(size: 20),
+                      child: const ElephantIcon(size: 22),
                     ),
                   ),
                 ),
@@ -634,15 +627,6 @@ String formatDate(String yyyymmdd) {
   final m = yyyymmdd.substring(4, 6);
   final d = yyyymmdd.substring(6, 8);
   return '$y.$m.$d';
-}
-
-String displayHost(String url) {
-  try {
-    final host = Uri.parse(url).host;
-    return host.isEmpty ? url : host;
-  } catch (e) {
-    return url;
-  }
 }
 
 Future<HotTopicsResponse> fetchTodayTopics() async {
