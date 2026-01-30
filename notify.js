@@ -127,6 +127,31 @@ export async function sendKakaoTextWithButton({
   return await sendTemplate(templateObject);
 }
 
+/** 핫토픽 알림 1건 보내기 (기본) */
+export async function notifyHotTopics({
+  date,
+  limitKR = 5,
+  limitWorld = 5,
+  linkUrl,
+  buttonTitle = "앱에서 보기",
+} = {}) {
+  if (!linkUrl) throw new Error("notifyHotTopics: linkUrl required");
+
+  const text = [
+    "🐘 경제코끼리 | 오늘의 경제 핫토픽이 도착했어요.",
+    `KR ${limitKR} · WORLD ${limitWorld}`,
+    "",
+    "앱에서 보기 →",
+  ].join("\n");
+
+  return await sendKakaoTextWithButton({
+    title: `경제코끼리 ${date || ""}`.trim(),
+    text,
+    url: linkUrl,
+    buttonTitle,
+  });
+}
+
 /** 리스트 템플릿 */
 export async function notifyList({
   headerTitle,

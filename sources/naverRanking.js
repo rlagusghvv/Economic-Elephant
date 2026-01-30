@@ -55,7 +55,7 @@ export function extractArticlesFromNaverPopular(html) {
   const $ = cheerio.load(html);
   const items = [];
 
-  $(".rankingnews_box .rankingnews_list li").each((_, li) => {
+  $(".rankingnews_box .rankingnews_list li").each((idx, li) => {
     const a = $(li).find("a").first();
     const title = a.find(".list_title").text().trim() || a.text().trim();
     let link = a.attr("href") || "";
@@ -63,11 +63,12 @@ export function extractArticlesFromNaverPopular(html) {
 
     if (!title || !link) return;
     if (!/^https?:\/\//i.test(link)) return;
+    if (link === "https://n.news.naver.com") return;
 
     const bad = ["subscribe", "membership", "promo", "event"];
     if (bad.some((w) => link.includes(w))) return;
 
-    items.push({ title, url: link });
+    items.push({ title, url: link, rank: idx + 1 });
   });
 
   // url 기준 dedupe
@@ -77,6 +78,136 @@ export function extractArticlesFromNaverPopular(html) {
     if (seen.has(it.url)) continue;
     seen.add(it.url);
     uniq.push(it);
+  }
+  return uniq;
+}
+
+function normalizeTitle(s) {
+  return String(s || "")
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export async function buildCandidatePoolKR({
+  date = todayYYYYMMDD(),
+  limitPoolK = 60,
+  perSection = 12,
+  sectionIds = [100, 101, 102, 103, 105],
+  debug = false,
+} = {}) {
+  const pool = [];
+
+  for (const sid of sectionIds) {
+    const { html, url } = await fetchNaverPopularHtml({
+      sectionId: sid,
+      date,
+      debug,
+    });
+    const list = extractArticlesFromNaverPopular(html);
+    if (debug)
+      console.log(
+        "[naver] KR section",
+        sid,
+        "count:",
+        list.length,
+        "from",
+        url
+      );
+    for (const it of list.slice(0, perSection)) {
+      pool.push({
+        title: normalizeTitle(it.title),
+        url: it.url,
+        section: sid,
+        rankHint: `S${sid}#${it.rank || 0}`,
+      });
+    }
+  }
+
+  const seenUrl = new Set();
+  const uniq = [];
+  for (const it of pool) {
+    if (!it.url || seenUrl.has(it.url)) continue;
+    seenUrl.add(it.url);
+    uniq.push(it);
+    if (uniq.length >= limitPoolK) break;
+  }
+  return uniq;
+}
+
+export async function buildCandidatePoolWORLD({
+  date = todayYYYYMMDD(),
+  limitPoolW = 60,
+  perSection = 50,
+  debug = false,
+} = {}) {
+  const SECTION_ECON = 101;
+  const { html, url } = await fetchNaverPopularHtml({
+    sectionId: SECTION_ECON,
+    date,
+    debug,
+  });
+  const list = extractArticlesFromNaverPopular(html);
+
+  const econKw = [
+    "해외",
+    "글로벌",
+    "환율",
+    "달러",
+    "유가",
+    "원유",
+    "나스닥",
+    "s&p",
+    "fed",
+    "ecb",
+    "연준",
+    "중앙은행",
+    "금리",
+    "인플레",
+    "증시",
+    "채권",
+    "무역",
+    "관세",
+    "반도체",
+    "원자재",
+    "금값",
+    "금",
+    "은",
+  ];
+
+  const filtered = list.filter((it) => {
+    const t = (it.title || "").toLowerCase();
+    return econKw.some((k) => t.includes(k.toLowerCase()));
+  });
+
+  if (debug)
+    console.log(
+      "[naver] WORLD econ list:",
+      list.length,
+      "filtered:",
+      filtered.length,
+      "from",
+      url
+    );
+
+  const base = filtered.length >= 10 ? filtered : list;
+  const pool = [];
+  for (const it of base.slice(0, perSection)) {
+    pool.push({
+      title: normalizeTitle(it.title),
+      url: it.url,
+      section: SECTION_ECON,
+      rankHint: `S${SECTION_ECON}#${it.rank || 0}`,
+    });
+  }
+
+  const seenUrl = new Set();
+  const uniq = [];
+  for (const it of pool) {
+    if (!it.url || seenUrl.has(it.url)) continue;
+    seenUrl.add(it.url);
+    uniq.push(it);
+    if (uniq.length >= limitPoolW) break;
   }
   return uniq;
 }
