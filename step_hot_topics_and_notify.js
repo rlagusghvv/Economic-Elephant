@@ -12,6 +12,8 @@ const log = (...a) => DEBUG && console.log("[hot-topics]", ...a);
 const LIMIT_KR = Number(process.env.LIMIT_KR || 5);
 const LIMIT_WORLD = Number(process.env.LIMIT_WORLD || 5);
 const MAX_ATTEMPTS = Number(process.env.MAX_ATTEMPTS || 3);
+const ENFORCE_DOMAIN_WHITELIST =
+  process.env.ENFORCE_DOMAIN_WHITELIST !== "0";
 
 function todayYYYYMMDD_KST() {
   const d = new Date(Date.now() + 9 * 60 * 60 * 1000);
@@ -36,6 +38,38 @@ function ensureOutDir() {
   return outDir;
 }
 
+const DOMAIN_WHITELIST = [
+  // KR
+  "news.naver.com",
+  "n.news.naver.com",
+  "m.news.naver.com",
+  "mk.co.kr",
+  "hankyung.com",
+  "sedaily.com",
+  "yonhapnewstv.co.kr",
+  "yna.co.kr",
+  "biz.chosun.com",
+  "dt.co.kr",
+  // WORLD
+  "reuters.com",
+  "bloomberg.com",
+  "wsj.com",
+  "ft.com",
+  "cnbc.com",
+  "marketwatch.com",
+  "investing.com",
+  "economist.com",
+  "imf.org",
+  "worldbank.org",
+  "oecd.org",
+  "fred.stlouisfed.org",
+  "bea.gov",
+  "bls.gov",
+  "sec.gov",
+  "ecb.europa.eu",
+  "federalreserve.gov",
+];
+
 function isValidHttpUrl(s) {
   try {
     const u = new URL(s);
@@ -43,6 +77,22 @@ function isValidHttpUrl(s) {
   } catch {
     return false;
   }
+}
+
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function isAllowedDomain(url) {
+  if (!ENFORCE_DOMAIN_WHITELIST) return true;
+  const host = hostnameOf(url);
+  return DOMAIN_WHITELIST.some(
+    (d) => host === d || host.endsWith(`.${d}`)
+  );
 }
 
 function validateTopicFields(topic, prefix, idx) {
@@ -54,20 +104,17 @@ function validateTopicFields(topic, prefix, idx) {
   if (titleLen < 25 || titleLen > 40) issues.push("title length 25~40");
 
   const summary = Array.isArray(topic?.summary) ? topic.summary : [];
-  if (summary.length < 2 || summary.length > 3)
-    issues.push("summary lines 2~3");
-
-  if (!String(topic?.why_it_matters || "").trim())
-    issues.push("why_it_matters missing");
+  if (summary.length !== 3) issues.push("summary lines must be 3");
 
   const tags = Array.isArray(topic?.tags) ? topic.tags : [];
   if (tags.length < 2 || tags.length > 4) issues.push("tags 2~4");
 
   const sources = Array.isArray(topic?.sources) ? topic.sources : [];
-  if (sources.length < 2 || sources.length > 3)
-    issues.push("sources 2~3");
+  if (sources.length < 1 || sources.length > 3)
+    issues.push("sources 1~3");
   for (const u of sources) {
     if (!isValidHttpUrl(u)) issues.push(`invalid url: ${u}`);
+    if (!isAllowedDomain(u)) issues.push(`domain not allowed: ${u}`);
   }
   return issues;
 }
@@ -111,6 +158,7 @@ async function main() {
       limitWorld: LIMIT_WORLD,
       debug: DEBUG,
       note,
+      allowedDomains: DOMAIN_WHITELIST,
     });
 
     const validation = validateOutput(data, LIMIT_KR, LIMIT_WORLD);
@@ -127,6 +175,9 @@ async function main() {
   const outPath = path.join(outDir, `daily_topics_${date}.json`);
   fs.writeFileSync(outPath, JSON.stringify(data, null, 2), "utf-8");
   console.log("[save] ->", outPath);
+  const latestPath = path.join(outDir, "latest.json");
+  fs.writeFileSync(latestPath, JSON.stringify(data, null, 2), "utf-8");
+  console.log("[save] ->", latestPath);
 
   const linkUrl = buildDailyLink(date);
   await notifyHotTopics({

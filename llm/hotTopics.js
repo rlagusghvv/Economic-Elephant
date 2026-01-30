@@ -6,8 +6,17 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function buildPrompt({ date, limitKR, limitWorld, note } = {}) {
+function buildPrompt({
+  date,
+  limitKR,
+  limitWorld,
+  note,
+  allowedDomains,
+} = {}) {
   const extra = note ? `\n[RETRY NOTE]\n${note}\n` : "";
+  const domainLine = Array.isArray(allowedDomains) && allowedDomains.length
+    ? `\n사용 가능한 도메인: ${allowedDomains.join(", ")}\n`
+    : "";
 
   return `
 너는 경제 뉴스 편집자다. 지금 시간 기준 "오늘의 경제 핫토픽"을
@@ -23,7 +32,6 @@ JSON 스키마:
       "id": "KR-01",
       "title": "한글 25~40자",
       "summary": ["한 문장", "한 문장", "한 문장"],
-      "why_it_matters": "한 문장",
       "sources": ["URL","URL","URL"],
       "tags": ["키워드","키워드"]
     }
@@ -32,8 +40,7 @@ JSON 스키마:
     {
       "id": "WD-01",
       "title": "한글 25~40자",
-      "summary": ["한 문장", "한 문장"],
-      "why_it_matters": "한 문장",
+      "summary": ["한 문장", "한 문장", "한 문장"],
       "sources": ["URL","URL"],
       "tags": ["키워드","키워드"]
     }
@@ -42,10 +49,12 @@ JSON 스키마:
 
 규칙:
 - id는 KR-01..KR-0${limitKR}, WD-01..WD-0${limitWorld}
-- summary는 2~3줄, 각 줄 1문장
-- sources는 2~3개, 실제 기사/칼럼/공식자료 링크만 사용
+- summary는 정확히 3줄, 각 줄 1문장
+- sources는 1~3개, 실제 기사/칼럼/공식자료 링크만 사용
 - tags는 2~4개
 - KR/WORLD는 지역을 혼동하지 말 것
+${domainLine}
+링크는 반드시 실제로 존재하는 URL이어야 하며, 임의 생성 금지.
 ${extra}
 `.trim();
 }
@@ -72,9 +81,16 @@ export async function generateHotTopics({
   debug = false,
   maxAttempts = 3,
   note = "",
+  allowedDomains = [],
 } = {}) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const prompt = buildPrompt({ date, limitKR, limitWorld, note });
+    const prompt = buildPrompt({
+      date,
+      limitKR,
+      limitWorld,
+      note,
+      allowedDomains,
+    });
 
     if (debug) {
       console.log("[hotTopics] attempt:", attempt);

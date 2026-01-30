@@ -8,6 +8,8 @@
 out/
 !out/
 !out/daily_topics_*.json
+!out/latest.json
+out/step10_links.json
 tmp_shots_kr/
 tmp_shots_world/
 
