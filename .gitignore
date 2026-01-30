@@ -6,6 +6,8 @@
 .tmp/
 .run/
 out/
+!out/
+!out/daily_topics_*.json
 tmp_shots_kr/
 tmp_shots_world/
 
